@@ -9,6 +9,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Open toast"
-        android:id="@+id/btnToast"/>
+        android:text="Open Second Activity"
+        android:textAlignment="center"
+        android:id="@+id/btn"/>
 </LinearLayout>
