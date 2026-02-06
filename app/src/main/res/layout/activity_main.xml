@@ -9,34 +9,40 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Fill the Form"
         android:textAlignment="center"
         android:textSize="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/name"
+        android:textFontWeight="@android:integer/config_longAnimTime"
+        android:layout_marginBottom="10dp"
+        />
 
     <EditText
         android:id="@+id/name"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Enter name"
         android:inputType="text"
+        android:layout_marginTop="10dp"
         app:layout_constraintBottom_toTopOf="@id/gender"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.028"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textView"
+        app:layout_constraintEnd_toStartOf="@id/rollNo"
         app:layout_constraintVertical_bias="0.5" />
 
     <EditText
         android:id="@+id/rollNo"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Enter Roll No"
         android:inputType="text"
+        android:layout_marginTop="10dp"
         app:layout_constraintBottom_toTopOf="@id/gender"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
@@ -46,11 +52,49 @@
 
     <Spinner
         android:id="@+id/gender"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
         android:layout_marginStart="9dp"
         android:layout_marginTop="20dp"
         android:spinnerMode="dropdown"
-        app:layout_constraintStart_toStartOf="@+id/name"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/name" />
+
+    <EditText
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/hobbies"
+        android:hint="Hobbies"
+        android:layout_marginStart="9dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toEndOf="@id/gender"
+        app:layout_constraintTop_toBottomOf="@id/rollNo"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/radio"
+        app:layout_constraintTop_toBottomOf="@id/gender"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        >
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mca"/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BTech"/>
+    </RadioGroup>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        app:layout_constraintTop_toBottomOf="@id/radio"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/btn"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
