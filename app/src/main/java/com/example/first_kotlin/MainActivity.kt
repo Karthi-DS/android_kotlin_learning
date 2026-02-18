@@ -1,7 +1,6 @@
 package com.example.first_kotlin
 
 import android.Manifest
-import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -11,106 +10,136 @@ import android.provider.ContactsContract
 import android.widget.AdapterView
 import android.widget.ListView
 import android.widget.SimpleCursorAdapter
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
 
-    var cols = listOf<String>(
-        ContactsContract.CommonDataKinds.Phone.SEARCH_DISPLAY_NAME_KEY,
-        ContactsContract.CommonDataKinds.Phone.NUMBER,
-        ContactsContract.CommonDataKinds.Phone._ID
-    ).toTypedArray();
+    private lateinit var listView: ListView
+    private var selectedNumber: String = ""
 
-    private lateinit var l1: ListView
-    private lateinit var c: Intent
-    private lateinit var cur: Cursor
-    private lateinit var i: String
+    private val READ_CONTACTS_REQUEST = 111
+    private val CALL_PHONE_REQUEST = 112
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        l1 = findViewById<ListView>(R.id.l1)
+        listView = findViewById(R.id.l1)
 
-        c = Intent(Intent.ACTION_CALL)
-
-        if(ContextCompat.checkSelfPermission(
-            this,
+        // Check READ_CONTACTS permission
+        if (ContextCompat.checkSelfPermission(
+                this,
                 Manifest.permission.READ_CONTACTS
-        )!= PackageManager.PERMISSION_GRANTED
-        ){
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             ActivityCompat.requestPermissions(
                 this,
-                Array(1) { Manifest.permission.READ_CONTACTS},
-                111
+                arrayOf(Manifest.permission.READ_CONTACTS),
+                READ_CONTACTS_REQUEST
             )
-        }else{
-//            readContact()
+        } else {
+            readContacts()
         }
-        l1.onItemClickListener = AdapterView.OnItemClickListener { parent,
-            view, position, id ->
-            cur = parent.adapter.getItem(position) as Cursor
-            i = cur.getString(cur.getColumnIndexOrThrow("data1")) as String
-//            start()
-        }
+
+        // Click listener
+        listView.onItemClickListener =
+            AdapterView.OnItemClickListener { parent, _, position, _ ->
+
+                val cursor = parent.getItemAtPosition(position) as Cursor
+
+                selectedNumber = cursor.getString(
+                    cursor.getColumnIndexOrThrow(
+                        ContactsContract.CommonDataKinds.Phone.NUMBER
+                    )
+                )
+
+                callContact()
+            }
     }
 
+    // Permission result
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
-    grantResults: IntArray
+        grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions,
-            grantResults)
-        if (requestCode == 111 && grantResults[0] ==
-                PackageManager.PERMISSION_GRANTED)
-        readContact()
-        if(requestCode==112 &&
-        grantResults[0]==PackageManager.PERMISSION_GRANTED) {
-            start()
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == READ_CONTACTS_REQUEST &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            readContacts()
+        }
+
+        if (requestCode == CALL_PHONE_REQUEST &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            callContact()
         }
     }
 
-    private fun readContact() {
-        var from = listOf<String>(
-                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-        ContactsContract.CommonDataKinds.Phone.NUMBER,
-        ContactsContract.CommonDataKinds.Phone._ID
-        ).toTypedArray()
-        var to = intArrayOf(android.R.id.text1, android.R.id.text2)
-        var c: ContentResolver = contentResolver
-        var s = c.query(
-            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-            cols,
-            null,
-            null,
-            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
-        )
-        var a = SimpleCursorAdapter(this,
-            android.R.layout.simple_list_item_2, s, from, to, 0)
-        l1.adapter = a
+    // Read contacts
+    private fun readContacts() {
 
+        val projection = arrayOf(
+            ContactsContract.CommonDataKinds.Phone._ID,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+            ContactsContract.CommonDataKinds.Phone.NUMBER
+        )
+
+        val cursor = contentResolver.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            projection,
+            null,
+            null,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
+        )
+
+        if (cursor == null) return
+
+        val from = arrayOf(
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+            ContactsContract.CommonDataKinds.Phone.NUMBER
+        )
+
+        val to = intArrayOf(
+            android.R.id.text1,
+            android.R.id.text2
+        )
+
+        val adapter = SimpleCursorAdapter(
+            this,
+            android.R.layout.simple_list_item_2,
+            cursor,
+            from,
+            to,
+            0
+        )
+
+        listView.adapter = adapter
     }
 
-    private fun start() {
+    // Call contact
+    private fun callContact() {
+
         if (ContextCompat.checkSelfPermission(
-                this@MainActivity,
+                this,
                 Manifest.permission.CALL_PHONE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-
             ActivityCompat.requestPermissions(
                 this,
-                Array(1) { Manifest.permission.CALL_PHONE }, 112
+                arrayOf(Manifest.permission.CALL_PHONE),
+                CALL_PHONE_REQUEST
             )
         } else {
-            c.data = Uri.parse("tel"+i)
-            startActivity(c)
+            val intent = Intent(Intent.ACTION_CALL)
+            intent.data = Uri.parse("tel:$selectedNumber")
+            startActivity(intent)
         }
     }
 }
