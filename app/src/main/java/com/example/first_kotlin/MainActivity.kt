@@ -12,10 +12,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val msg = findViewById<EditText>(R.id.msg).toString()
+        val editText = findViewById<EditText>(R.id.msg)
         val btn = findViewById<Button>(R.id.btn)
         btn.setOnClickListener {
+            val msg = editText.text.toString()
             Intent(this, Contacts::class.java).also {
+                it.putExtra("msg",msg)
                 startActivity(it)
             }
         }
