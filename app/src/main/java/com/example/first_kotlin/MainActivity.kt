@@ -7,7 +7,9 @@ import android.os.Bundle
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import android.content.IntentFilter
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,19 +30,19 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        otpReceiver = object : BroadcastReceiver() {
+        otpReceiver = object : BroadcastReceiver(){
             override fun onReceive(context: Context?, intent: Intent?) {
-                intent?.getStringExtra("msgBody")?.let { otp ->
-                    Log.v("received_otp", otp)
-                    ed1.setText(otp)
-                }
+                val msg = intent?.getStringExtra("msg_body").toString()
+                Log.v("msg",msg)
+                ed1.setText(msg)
             }
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
-        registerReceiver(otpReceiver, IntentFilter("OTP_RECEIVED"), RECEIVER_EXPORTED)
+        registerReceiver(otpReceiver, IntentFilter("SMS_RECEIVED"), RECEIVER_EXPORTED)
     }
 
     override fun onStop() {
