@@ -20,6 +20,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <receiver
+            android:name=".smsReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="android.provider.Telephony.SMS_RECEIVED"/>
+            </intent-filter>
+
+        </receiver>
+    </application>
+    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+    <uses-permission android:name="android.permission.READ_SMS"/>
 </manifest>
