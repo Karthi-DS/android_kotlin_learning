@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.First_kotlin">
         <activity
+            android:name=".whatsapp"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -21,5 +24,5 @@
             </intent-filter>
         </activity>
     </application>
-
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
 </manifest>

@@ -8,4 +8,34 @@
     android:background="#168BC34A"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Menu"
+        android:textAlignment="center"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="msg whatsapp"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        android:id="@+id/btn1"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="toggle"
+        android:id="@+id/btn2"
+        app:layout_constraintTop_toBottomOf="@id/btn1"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="btn3"
+        android:id="@+id/btn3"
+        app:layout_constraintTop_toBottomOf="@id/btn2"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>
