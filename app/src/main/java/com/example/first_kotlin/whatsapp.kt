@@ -1,6 +1,7 @@
 package com.example.first_kotlin
 
 import android.content.ContentResolver
+import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
 import android.widget.ListView
@@ -10,13 +11,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.ContactsContract
+import android.widget.AdapterView
+import android.widget.SimpleCursorAdapter
 import androidx.core.app.ActivityCompat
-import java.util.jar.Manifest
 
 class whatsapp : AppCompatActivity() {
     private lateinit var list: ListView
-    private lateinit var cursor: Cursor
+    private lateinit var msg: String
+    private lateinit var selectedNumber: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -29,6 +34,8 @@ class whatsapp : AppCompatActivity() {
 
         list = findViewById<ListView>(R.id.list)
 
+        msg = intent.getStringExtra("msg").toString()
+
         if(ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_CONTACTS)!=
             PackageManager.PERMISSION_GRANTED
         ){
@@ -40,12 +47,27 @@ class whatsapp : AppCompatActivity() {
         }else{
             readContacts()
         }
+
+        list.onItemClickListener =
+            AdapterView.OnItemClickListener { parent, _, position, _ ->
+
+                val cursor = parent.getItemAtPosition(position) as Cursor
+
+                selectedNumber = cursor.getString(
+                    cursor.getColumnIndexOrThrow(
+                        ContactsContract.CommonDataKinds.Phone.NUMBER
+                    )
+                )
+
+                msgContact()
+            }
+
     }
     private fun readContacts(){
         val projection = arrayOf(
             ContactsContract.CommonDataKinds.Phone._ID,
             ContactsContract.CommonDataKinds.Phone.NUMBER,
-            ContactsContract.CommonDataKinds.Phone.SEARCH_DISPLAY_NAME_KEY
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
         )
 
         val cursor = contentResolver.query(
@@ -53,19 +75,47 @@ class whatsapp : AppCompatActivity() {
             projection,
             null,
             null,
-            ContactsContract.CommonDataKinds.Phone.SEARCH_DISPLAY_NAME_KEY + "ASC"
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
         )
 
         if(cursor==null) return
 
-        val from = arrayOf(
-            ContactsContract.CommonDataKinds.Phone.SEARCH_DISPLAY_NAME_KEY,
+        val from= arrayOf(
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
             ContactsContract.CommonDataKinds.Phone.NUMBER
         )
 
-        val to = arrayOf(
-            androidx.core.R.id.text1,
-            an
+        val to = intArrayOf(
+            android.R.id.text1,
+            android.R.id.text2
         )
+
+        val adaptar = SimpleCursorAdapter(
+            this,
+            android.R.layout.simple_list_item_2,
+            cursor,
+            from,
+            to,
+            0
+        )
+
+        list.adapter = adaptar
+    }
+
+    private fun callContact(){
+        if(ContextCompat.checkSelfPermission(this,android.Manifest.permission.CALL_PHONE)!=
+            android.content.pm.PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,arrayOf(android.Manifest.permission.CALL_PHONE),100)
+        }else{
+            val intent = Intent(Intent.ACTION_CALL)
+            intent.data = Uri.parse("tel:$selectedNumber")
+            startActivity(intent)
+        }
+    }
+
+    private fun msgContact(){
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.data = Uri.parse("https://wa.me/$selectedNumber?text=${Uri.encode(msg)}")
+        startActivity(intent)
     }
 }
