@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "132387119362",
+    "project_id": "android-mad-fedde",
+    "storage_bucket": "android-mad-fedde.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132387119362:android:0e7f4a40b624130558221b",
+        "android_client_info": {
+          "package_name": "com.example.first_kotlin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5LnCyynRIqxQhXtABVnsC-VFMNZqhWpk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
