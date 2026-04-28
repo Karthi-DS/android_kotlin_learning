@@ -1,93 +1,96 @@
 package com.example.first_kotlin.firebase_firestore
 
+import com.example.first_kotlin.data.AppNotification
 import com.example.first_kotlin.data.User
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.tasks.await
 
 class FireStoreClient {
-    private val collection = "users"
+    private val usersCollection = "users"
+    private val notificationsCollection = "notifications"
     private val db = FirebaseFirestore.getInstance()
 
-    // Create
-    fun insertUser(user: User): Flow<Result<String>> = callbackFlow {
-        db.collection(collection)
+    // --- User CRUD ---
+
+    suspend fun insertUser(user: User): String {
+        val documentReference = db.collection(usersCollection)
             .add(user.toHashMap())
-            .addOnSuccessListener { documentReference ->
-                trySend(Result.success(documentReference.id))
-            }
-            .addOnFailureListener { e ->
-                trySend(Result.failure(e))
-            }
-        awaitClose { }
+            .await()
+        return documentReference.id
     }
 
-    // Read (Listen for real-time updates)
-    fun getAllUsers(): Flow<Result<List<User>>> = callbackFlow {
-        val listener = db.collection(collection)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    trySend(Result.failure(e))
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null) {
-                    val users = snapshot.documents.mapNotNull { doc ->
-                        doc.toUser()
-                    }
-                    trySend(Result.success(users))
-                }
-            }
-        awaitClose { listener.remove() }
+    suspend fun getAllUsers(): List<User> {
+        val snapshot = db.collection(usersCollection)
+            .get()
+            .await()
+        return snapshot.documents.mapNotNull { it.toUser() }
     }
 
-    // Update
-    fun updateUser(user: User): Flow<Result<Unit>> = callbackFlow {
-        if (user.id.isEmpty()) {
-            trySend(Result.failure(Exception("User ID is empty")))
-            close()
-            return@callbackFlow
-        }
-        db.collection(collection).document(user.id)
-            .set(user.toHashMap()) // Using set to overwrite/update
-            .addOnSuccessListener {
-                trySend(Result.success(Unit))
-            }
-            .addOnFailureListener { e ->
-                trySend(Result.failure(e))
-            }
-        awaitClose { }
+    suspend fun updateUser(user: User) {
+        db.collection(usersCollection).document(user.id)
+            .set(user.toHashMap())
+            .await()
     }
 
-    // Delete
-    fun deleteUser(userId: String): Flow<Result<Unit>> = callbackFlow {
-        db.collection(collection).document(userId)
+    suspend fun updateFcmToken(userId: String, token: String) {
+        db.collection(usersCollection).document(userId)
+            .update("fcmToken", token)
+            .await()
+    }
+
+    suspend fun deleteUser(userId: String) {
+        db.collection(usersCollection).document(userId)
             .delete()
-            .addOnSuccessListener {
-                trySend(Result.success(Unit))
+            .await()
+    }
+
+    // --- Notification "Push" Logic ---
+
+    // Send a notification by adding it to Firestore
+    suspend fun sendNotification(notification: AppNotification) {
+        db.collection(notificationsCollection)
+            .add(notification)
+            .await()
+    }
+
+    // Listen for new notifications in real-time
+    fun listenForNotifications(onNotificationReceived: (AppNotification) -> Unit) {
+        db.collection(notificationsCollection)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(1)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null || snapshot == null || snapshot.isEmpty) return@addSnapshotListener
+                
+                val doc = snapshot.documents[0]
+                val notification = doc.toObject(AppNotification::class.java)
+                if (notification != null) {
+                    // Only show if it's very recent (e.g., within last 10 seconds)
+                    // to avoid showing old notifications on app start
+                    if (System.currentTimeMillis() - notification.timestamp < 10000) {
+                        onNotificationReceived(notification)
+                    }
+                }
             }
-            .addOnFailureListener { e ->
-                trySend(Result.failure(e))
-            }
-        awaitClose { }
     }
 
     private fun User.toHashMap(): HashMap<String, Any> {
         return hashMapOf(
             "name" to name,
             "email" to email,
-            "password" to password
+            "password" to password,
+            "fcmToken" to fcmToken
         )
     }
 
     private fun com.google.firebase.firestore.DocumentSnapshot.toUser(): User? {
         return try {
             User(
-                id = id, // Firestore Document ID
+                id = id,
                 name = getString("name") ?: "",
                 email = getString("email") ?: "",
-                password = getString("password") ?: ""
+                password = getString("password") ?: "",
+                fcmToken = getString("fcmToken") ?: ""
             )
         } catch (e: Exception) {
             null

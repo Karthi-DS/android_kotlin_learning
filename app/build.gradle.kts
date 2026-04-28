@@ -50,4 +50,6 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.0")
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
+    implementation(libs.kotlinx.coroutines.play.services)
 }
